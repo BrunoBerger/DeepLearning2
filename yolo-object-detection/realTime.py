@@ -2,6 +2,8 @@
 #https://www.pyimagesearch.com/2018/11/12/yolo-object-detection-with-opencv/
 #and
 #https://www.pyimagesearch.com/2017/09/18/real-time-object-detection-with-deep-learning-and-opencv/
+#EXECUTE WITH:
+# python yolo.py --yolo yolo-coco
 
 # import the necessary packages
 from imutils.video import VideoStream
@@ -28,8 +30,8 @@ args = vars(ap.parse_args())
 labelsPath = os.path.sep.join([args["yolo"], "coco.names"])
 LABELS = open(labelsPath).read().strip().split("\n")
 
-configPath = os.path.sep.join([args["yolo"], "yolov3.cfg"])
-weightsPath = os.path.sep.join([args["yolo"], "yolov3.weights"])
+configPath = os.path.sep.join([args["yolo"], "yolov3-tiny.cfg"])
+weightsPath = os.path.sep.join([args["yolo"], "yolov3-tiny.weights"])
 
 
 # initialize a list of colors to represent each possible class label
