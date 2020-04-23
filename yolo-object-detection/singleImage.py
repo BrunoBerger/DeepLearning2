@@ -1,4 +1,5 @@
 # USAGE
+# run this script in its directory or adjust the yolo base path
 # python yolo.py --image images/baggage_claim.jpg --yolo yolo-coco
 
 # import the necessary packages
@@ -20,8 +21,7 @@ ap.add_argument("-t", "--threshold", type=float, default=0.3,
 	help="threshold when applyong non-maxima suppression")
 args = vars(ap.parse_args())
 
-print(args["yolo"])
-args["yolo"] = "yolo-coco"
+
 # load the COCO class labels our YOLO model was trained on
 labelsPath = os.path.sep.join([args["yolo"], "coco.names"])
 LABELS = open(labelsPath).read().strip().split("\n")

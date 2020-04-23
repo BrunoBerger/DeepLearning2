@@ -2,8 +2,9 @@
 #https://www.pyimagesearch.com/2018/11/12/yolo-object-detection-with-opencv/
 #and
 #https://www.pyimagesearch.com/2017/09/18/real-time-object-detection-with-deep-learning-and-opencv/
+# run this script in its directory or adjust the yolo base path
 #EXECUTE WITH:
-# python yolo.py --yolo yolo-coco
+# python yolo.py <--yolo yolo-coco> <--model <Tiny>/<320>>
 
 # import the necessary packages
 from imutils.video import VideoStream
@@ -16,30 +17,38 @@ import cv2
 import os
 
 ### SETUP
-
+# construct the parser + arguments
+#choose model between Tiny, 320, etc..
 ap = argparse.ArgumentParser()
 ap.add_argument("-y", "--yolo", required=False, default="yolo-coco",
 	help="base path to YOLO directory")
+ap.add_argument("-m", "--model", required=False, default="Tiny",
+	help="chose between the yolov3 models 320 and Tiny")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
 	help="minimum probability to filter weak detections")
 ap.add_argument("-t", "--threshold", type=float, default=0.3,
 	help="threshold when applyong non-maxima suppression")
 args = vars(ap.parse_args())
 
+#get the names of the cfg and weights files for the chosen model
+for file in os.listdir(os.path.sep.join([args["yolo"], args["model"]])):
+	if file.endswith(".cfg"):
+		configFile = file
+	if file.endswith(".weights"):
+		weightsFile = file
 
+# assign the paths to the files based on the arguments
+configPath = os.path.sep.join([args["yolo"], args["model"],  configFile ])
+weightsPath = os.path.sep.join([args["yolo"], args["model"], weightsFile ])
 labelsPath = os.path.sep.join([args["yolo"], "coco.names"])
 LABELS = open(labelsPath).read().strip().split("\n")
-
-configPath = os.path.sep.join([args["yolo"], "yolov3-tiny.cfg"])
-weightsPath = os.path.sep.join([args["yolo"], "yolov3-tiny.weights"])
-
 
 # initialize a list of colors to represent each possible class label
 np.random.seed(42)
 COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
 	dtype="uint8")
 
-print("[INFO] Setup, done, loading yolo...")
+print("[INFO] Setup, done, loading the ", args["model"], "model")
 net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
 ###VIDEO
@@ -56,7 +65,10 @@ cv2.namedWindow('betterWindow', flags= cv2.WINDOW_GUI_NORMAL)
 while True:
 	#grab frame and its dimensions
 	frame = vs.read()
-	(H, W) = frame.shape[:2]
+	try:
+		(H, W) = frame.shape[:2]
+	except AttributeError:
+		print ("[ERROR] Please connect a Webcam to the PC")
 
 	# determine only the *output* layer names that we need from YOLO
 	ln = net.getLayerNames()
@@ -71,9 +83,6 @@ while True:
 	start = time.time()
 	layerOutputs = net.forward(ln)
 	end = time.time()
-
-	# show timing information on YOLO
-	print("[INFO] YOLO took {:.6f} seconds".format(end - start))
 
 	# initialize our lists of detected bounding boxes, confidences, and
 	# class IDs, respectively
@@ -119,11 +128,9 @@ while True:
 
 	# output the names of detected objets
 	for x in range(len(idxs)):
-	    print (LABELS[classIDs[x]],
-			" erkannt, zu ", "%.3f" % confidences[x])
-
-
-
+	    print(LABELS[classIDs[x]],
+			" detected, with ", "%.2f" % confidences[x],
+			 " confidence in {:.6f} seconds".format(end - start))
 
 	# show the output frame
 	cv2.imshow("betterWindow", frame)
