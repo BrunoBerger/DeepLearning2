@@ -22,7 +22,7 @@ import os
 ap = argparse.ArgumentParser()
 ap.add_argument("-y", "--yolo", required=False, default="yolo-coco",
 	help="base path to YOLO directory")
-ap.add_argument("-m", "--model", required=False, default="Tiny",
+ap.add_argument("-m", "--model", required=False, default="320",
 	help="chose between the yolov3 models 320 and Tiny")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
 	help="minimum probability to filter weak detections")
