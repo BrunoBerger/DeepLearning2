@@ -15,6 +15,7 @@ import argparse
 import time
 import cv2
 import os
+import csv
 
 ### SETUP
 # construct the parser + arguments
@@ -37,6 +38,8 @@ for file in os.listdir(os.path.sep.join([args["yolo"], args["model"]])):
 	if file.endswith(".weights"):
 		weightsFile = file
 
+#############
+
 # assign the paths to the files based on the arguments
 configPath = os.path.sep.join([args["yolo"], args["model"],  configFile ])
 weightsPath = os.path.sep.join([args["yolo"], args["model"], weightsFile ])
@@ -50,6 +53,11 @@ COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
 
 print("[INFO] Setup, done, loading the ", args["model"], "model")
 net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
+
+##################
+
+f = open("object_log.csv", "w+")
+f.close()
 
 ###VIDEO
 
@@ -80,6 +88,7 @@ while True:
 	blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416), ##TODO
 		swapRB=True, crop=False)
 	net.setInput(blob)
+
 	start = time.time()
 	layerOutputs = net.forward(ln)
 	end = time.time()
@@ -131,6 +140,11 @@ while True:
 	    print(LABELS[classIDs[x]],
 			" detected, with ", "%.2f" % confidences[x],
 			 " confidence in {:.6f} seconds".format(end - start))
+
+	for x in range(len(idxs)):
+		with open('object_log.csv','a') as file_:
+			file_.write("{},{}".format(LABELS[classIDs[x]], confidences[x]))
+			file_.write("\n")
 
 	# show the output frame
 	cv2.imshow("betterWindow", frame)
