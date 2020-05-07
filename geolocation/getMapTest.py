@@ -35,10 +35,12 @@ def getImageCluster(lat_deg, lon_deg, delta_lat,  delta_long, zoom):
     for xtile in range(xmin, xmax+1):
         for ytile in range(ymin,  ymax+1):
             try:
-                imgurl=smurl.format(zoom, xtile, ytile)
+                imgurl=smurl.format(xtile, ytile, zoom)
                 print("Opening: " + imgurl)
                 imgstr = urllib2.urlopen(imgurl).read()
+                print("test1")
                 tile = Image.open(StringIO.StringIO(imgstr))
+                print("test2")
                 Cluster.paste(tile, box=((xtile-xmin)*256 ,  (ytile-ymin)*255))
             except:
                 print("Couldn't download image")

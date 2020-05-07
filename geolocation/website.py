@@ -1,13 +1,25 @@
-from bottle import route, run, template
-
 import webbrowser
+import folium
+from random import uniform
+import csv
 
 
-@route('/hello/<name>')
-def index(name):
-    return template('<b>Hello {{name}}</b>!', name=name)
+# Creates Map Object
+k = folium.Map(location=[52, 9], zoom_start=8)
 
-webbrowser.open('http://localhost:8080/hello/Test', new=2, autoraise=True)
-print("all done")
 
-run(host='localhost', port=8080)
+# Create Markters of a csv file
+with open("../object_log.csv", "r") as objects:
+    reader = csv.reader(objects, delimiter=',')
+    for row in reader:
+        lat = row[2]
+        lon = row[3]
+        obj = row[0]
+        popup = "{} found at: {},{}".format(obj,lat,lon)
+        folium.Marker([lat, lon],
+            popup=popup,
+            tooltip=obj).add_to(k)
+
+# Save and dislplay the html file
+k.save('karte.html')
+webbrowser.open('karte.html', new=0)
