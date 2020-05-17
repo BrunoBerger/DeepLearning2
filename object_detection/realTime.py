@@ -2,13 +2,11 @@
 #https://www.pyimagesearch.com/2018/11/12/yolo-object-detection-with-opencv/
 #and
 #https://www.pyimagesearch.com/2017/09/18/real-time-object-detection-with-deep-learning-and-opencv/
-# run this script in its directory or adjust the yolo base path
-#EXECUTE WITH:
-# python yolo.py <--yolo yolo-coco> <--model <Tiny>/<320>>
 
 # import the necessary packages
 from imutils.video import VideoStream
 from imutils.video import FPS
+from datetime import datetime
 import numpy as np
 import imutils
 import argparse
@@ -17,28 +15,17 @@ import cv2
 import os
 import csv
 
+from object_detection.detection_scripts import MobileNetSSD_SCRIPT
+from geolocation import gps
 
-from geolocation import test
 ### SETUP
-# construct the parser + arguments
-#choose model between Tiny, 320, etc..
-
-
-def main():
+def setup(args):
 	os.chdir("object_detection")
 
-	ap = argparse.ArgumentParser()
-	ap.add_argument("-y", "--type", required=False, default="yolo-coco",
-		help="base path to YOLO directory")
-	ap.add_argument("-m", "--model", required=False, default="Tiny",
-		help="chose between the yolov3 models 320 and Tiny")
-	ap.add_argument("-c", "--confidence", type=float, default=0.5,
-		help="minimum probability to filter weak detections")
-	ap.add_argument("-t", "--threshold", type=float, default=0.3,
-		help="threshold when applyong non-maxima suppression")
-	args = vars(ap.parse_args())
-
 	print("Chosen Model Type:", args["type"])
+
+	global net
+	global COLORS
 
 	# Load a yolo model
 	if args["type"] == "yolo-coco":
@@ -53,6 +40,7 @@ def main():
 		configPath = os.path.sep.join([args["type"], args["model"],  configFile ])
 		weightsPath = os.path.sep.join([args["type"], args["model"], weightsFile ])
 		labelsPath = os.path.sep.join([args["type"], "coco.names"])
+		global LABELS
 		LABELS = open(labelsPath).read().strip().split("\n")
 
 		# initialize a list of colors to represent each possible class label
@@ -64,10 +52,12 @@ def main():
 		net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
 	elif args["type"] == "SSD-Mobilenet-v2":
-		print("This will come later")
+		print("This may come later")
 		exit()
 
 	elif args["type"] == "MobileNetSSD":
+		global CLASSES
+
 		CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
 			"bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
 			"dog", "horse", "motorbike", "person", "pottedplant", "sheep",
@@ -75,17 +65,109 @@ def main():
 		COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 		net = cv2.dnn.readNetFromCaffe("MobileNetSSD/MobileNetSSD_deploy.prototxt.txt",
-			"MobileNetSSD.MobileNetSSD_deploy.caffemodel")
+			"MobileNetSSD/MobileNetSSD_deploy.caffemodel")
 
 	else:
 		print("[ERROR]:Specify a '--type' ")
 		exit()
 
+####################################
+####################################
+####################################
+####################################
+def mnSSD_Detection(args):
+	###MNSSD TYPE
 	##################
+	print("[INFO] starting video stream...")
+	vs = VideoStream(src=0).start()
+	time.sleep(2.0)
+	fps = FPS().start()
 
+	f = open("../object_log.csv", "w+")
+	f.close()
 
+	# loop over the frames from the video stream
+	while True:
+		# grab the frame from the threaded video stream and resize it
+		# to have a maximum width of 400 pixels
+		frame = vs.read()
+		frame = imutils.resize(frame, width=400)
 
-	###VIDEO
+		# grab the frame dimensions and convert it to a blob
+		try:
+			frame = vs.read()
+			(H, W) = frame.shape[:2]
+		except AttributeError:
+			print ("[ERROR] Please connect a Webcam to the PC")
+			exit()
+		blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
+			0.007843, (300, 300), 127.5)
+
+		# pass the blob through the network and obtain the detections and
+		# predictions
+		start = time.time()
+		net.setInput(blob)
+		detections = net.forward()
+		end = time.time()
+		# loop over the detections
+		for i in np.arange(0, detections.shape[2]):
+			# extract the confidence (i.e., probability) associated with
+			# the prediction
+			confidence = detections[0, 0, i, 2]
+
+			# filter out weak detections by ensuring the `confidence` is
+			# greater than the minimum confidence
+			if confidence > args["confidence"]:
+				# extract the index of the class label from the
+				# `detections`, then compute the (x, y)-coordinates of
+				# the bounding box for the object
+				idx = int(detections[0, 0, i, 1])
+				box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+				(startX, startY, endX, endY) = box.astype("int")
+
+				# draw the prediction on the frame
+				label = "{}: {:.2f}%".format(CLASSES[idx],
+					confidence * 100)
+				cv2.rectangle(frame, (startX, startY), (endX, endY),
+					COLORS[idx], 2)
+				y = startY - 15 if startY - 15 > 15 else startY + 15
+				cv2.putText(frame, label, (startX, y),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
+
+				# output the names of detected objets
+				print(label,
+					" detected, with ", "%.2f" % confidence,
+					" confidence in {:.6f} seconds".format(end - start))
+
+				position = gps.givePosition()
+				with open('../object_log.csv','a') as file_:
+					file_.write("{},{},{},{},{}".format(label,
+						"%.2f" % confidence,
+						position[0], position[1],
+						datetime.now()))
+					file_.write("\n")
+
+		# show the output frame
+		cv2.imshow("wayCoolerWindow", frame)
+		return frame
+		# if the `q` key was pressed, break from the loop
+		key = cv2.waitKey(1) & 0xFF
+		if key == ord("q"):
+			break
+
+		# update the FPS counter
+		fps.update()
+
+		# do a bit of cleanup
+		cv2.destroyAllWindows()
+		vs.stop()
+
+########################################
+########################################
+########################################
+########################################
+def yolo_Detection(args):
+	###YOLO TYPE
 
 	#start getting the video form webcam 0
 	vs = VideoStream(src=0).start()
@@ -102,8 +184,9 @@ def main():
 	#output the Video Stream
 	while True:
 		#grab frame and its dimensions
-		frame = vs.read()
+		# frame = vs.read()
 		try:
+			frame = vs.read()
 			(H, W) = frame.shape[:2]
 		except AttributeError:
 			print ("[ERROR] Please connect a Webcam to the PC")
@@ -166,6 +249,22 @@ def main():
 		idxs = cv2.dnn.NMSBoxes(boxes, confidences, args["confidence"],
 			args["threshold"])
 
+		# ensure at least one detection exists
+		if len(idxs) > 0:
+			# loop over the indexes we are keeping
+			for i in idxs.flatten():
+				# extract the bounding box coordinates
+				(x, y) = (boxes[i][0], boxes[i][1])
+				(w, h) = (boxes[i][2], boxes[i][3])
+
+				# draw a bounding box rectangle and label on the image
+				color = [int(c) for c in COLORS[classIDs[i]]]
+				cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+				text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
+				cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
+					0.5, color, 2)
+
+
 		# output the names of detected objets
 		for x in range(len(idxs)):
 		    print(LABELS[classIDs[x]],
@@ -173,11 +272,13 @@ def main():
 				 " confidence in {:.6f} seconds".format(end - start))
 
 		for x in range(len(idxs)):
-			position = test.givePosition()
+			position = gps.givePosition()
 			with open('../object_log.csv','a') as file_:
-				file_.write("{},{},{},{}".format(LABELS[classIDs[x]],
+				file_.write("{},{},{},{},{}".format(
+					LABELS[classIDs[x]],
 					"%.2f" % confidences[x],
-					position[0], position[1]))
+					position[0], position[1],
+					datetime.now()))
 				file_.write("\n")
 
 		# show the output frame
@@ -189,6 +290,7 @@ def main():
 		# update the FPS counter
 		fps.update()
 
+
 	fps.stop()
 	print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
 	print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
@@ -198,5 +300,17 @@ def main():
 	vs.stop()
 
 
+def main(args):
+	setup(args)
+	if args["type"] == "MobileNetSSD":
+		mnSSD_Detection(args)
+
+	elif args["type"] == "yolo-coco":
+		yolo_Detection(args)
+
+	else:
+		print("[ERROR] Select a detection-type")
+		exit()
+
 if __name__ == '__main__':
-	main()
+	main(args)

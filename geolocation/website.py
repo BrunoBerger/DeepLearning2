@@ -1,6 +1,5 @@
 import webbrowser
 import folium
-from random import uniform
 import csv
 
 
