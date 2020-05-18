@@ -1,15 +1,22 @@
 from tkinter import *
 import cv2
 import threading
+import main_test
 
 def callbackTest():
     print("click!")
 
-def terminateThread(run_flag):
-    print("Attempt Button-Termination")
-    run_flag.value = False
+def startThread(run_flag, all_processes, b2):
+    run_flag.value = True
+    main_test.odThread(run_flag, all_processes)
+    b2.config(state="disabled")
 
-def optionWindow(run_flag):
+def terminateThread(run_flag, b2):
+    print("Terminating Stream")
+    run_flag.value = False
+    b2.config(state="active")
+
+def optionWindow(run_flag, all_processes):
     config = Tk()
     config.title("Options")
     config.minsize(280,300)
@@ -25,10 +32,12 @@ def optionWindow(run_flag):
 
     b1 = Button(config, text="Print Something",
         command=callbackTest, height=2, width=15)
-    b2 = Button(config, text="Terminate Thread",
-        command= lambda: terminateThread(run_flag), height=2, width=15)
+    b2 = Button(config, text="Start Thread",
+        command= lambda: startThread(run_flag, all_processes, b2), height=2, width=15)
+    b3 = Button(config, text="Terminate Thread",
+        command= lambda: terminateThread(run_flag, b2), height=2, width=15)
 
     b1.place(x = 30, y = 20)
     b2.place(x = 30, y = 70)
-
+    b3.place(x = 30, y = 120)
     mainloop()
