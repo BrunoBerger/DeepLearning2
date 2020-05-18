@@ -1,9 +1,15 @@
 from tkinter import *
 import cv2
-import TEST
 import threading
 
-def optionWindow(stop_threads):
+def callbackTest():
+    print("click!")
+
+def terminateThread(run_flag):
+    print("Attempt Button-Termination")
+    run_flag.value = False
+
+def optionWindow(run_flag):
     config = Tk()
     config.title("Options")
     config.minsize(280,300)
@@ -17,25 +23,12 @@ def optionWindow(stop_threads):
     # Positions the window in the center of the page.
     config.geometry("+{}+{}".format(positionRight, positionDown))
 
-
-    def callbackTest():
-        print("click!")
-
-    def terminateThread():
-        stop_threads = True
-        print("Attempt Termination")
-
-    b1 = Button(config, text="Print Something", command=callbackTest, height=2, width=15)
-    b2 = Button(config, text="Terminate Thread", command=terminateThread, height=2, width=15)
+    b1 = Button(config, text="Print Something",
+        command=callbackTest, height=2, width=15)
+    b2 = Button(config, text="Terminate Thread",
+        command= lambda: terminateThread(run_flag), height=2, width=15)
 
     b1.place(x = 30, y = 20)
     b2.place(x = 30, y = 70)
 
     mainloop()
-
-if __name__ == '__main__':
-    stop_threads = False
-    t2 = threading.Thread(target = optionWindow, args =(lambda : stop_threads, ))
-    t2.start()
-    
-    TEST.main(stop_threads)

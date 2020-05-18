@@ -7,7 +7,7 @@ import threading
 
 # import needed files
 from object_detection import realTime
-from GUI import windowPLUS
+from GUI import simpleUI
 
 # Set current working dir to the one of main.py
 abspath = os.path.abspath(__file__)
@@ -27,10 +27,17 @@ ap.add_argument("-t", "--threshold", type=float, default=0.3,
 args = vars(ap.parse_args())
 
 print("Hello ", os.getlogin(), "lets get started!")
+
+stop_threads = False
+
+# ui = threading.Thread(target = simpleUI.optionWindow(),
+#                             daemon=True, args =(lambda : stop_threads))
+# ui.start()
+
 cv2.namedWindow('wayCoolerWindow', flags= cv2.WINDOW_GUI_NORMAL)
 
-
-detection = threading.Thread(target = realTime.main(args), daemon=True)
+detection = threading.Thread(target = realTime.main(args),
+                            daemon=True, args =(lambda : stop_threads))
 detection.start()
 print("started Detection")
 
@@ -39,14 +46,12 @@ while True:
     if key == ord("q"):
         break
 
+
 fps.stop()
 print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
-# do a bit of cleanup
-cv2.destroyAllWindows()
-vs.stop()
-
-# realTime.main(args)
+detection.join()
+ui.join()
 
 print("done")

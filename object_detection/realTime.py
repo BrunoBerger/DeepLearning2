@@ -17,6 +17,7 @@ import csv
 
 from object_detection.detection_scripts import MobileNetSSD_SCRIPT
 from geolocation import gps
+from GUI import simpleUI
 
 ### SETUP
 def setup(args):
@@ -88,15 +89,10 @@ def mnSSD_Detection(args):
 
 	# loop over the frames from the video stream
 	while True:
-		# grab the frame from the threaded video stream and resize it
-		# to have a maximum width of 400 pixels
-		frame = vs.read()
-		frame = imutils.resize(frame, width=400)
-
 		# grab the frame dimensions and convert it to a blob
 		try:
 			frame = vs.read()
-			(H, W) = frame.shape[:2]
+			frame = imutils.resize(frame, width=400)
 		except AttributeError:
 			print ("[ERROR] Please connect a Webcam to the PC")
 			exit()
@@ -149,24 +145,23 @@ def mnSSD_Detection(args):
 
 		# show the output frame
 		cv2.imshow("wayCoolerWindow", frame)
-		return frame
 		# if the `q` key was pressed, break from the loop
 		key = cv2.waitKey(1) & 0xFF
 		if key == ord("q"):
 			break
 
-		# update the FPS counter
-		fps.update()
+	# update the FPS counter
+	fps.update()
 
-		# do a bit of cleanup
-		cv2.destroyAllWindows()
-		vs.stop()
+	# do a bit of cleanup
+	cv2.destroyAllWindows()
+	vs.stop()
 
 ########################################
 ########################################
 ########################################
 ########################################
-def yolo_Detection(args):
+def yolo_Detection(args, stop):
 	###YOLO TYPE
 
 	#start getting the video form webcam 0
@@ -183,6 +178,11 @@ def yolo_Detection(args):
 
 	#output the Video Stream
 	while True:
+		if stop():
+
+			print("Terminating Thread")
+			break
+
 		#grab frame and its dimensions
 		# frame = vs.read()
 		try:
@@ -300,13 +300,13 @@ def yolo_Detection(args):
 	vs.stop()
 
 
-def main(args):
+def main(args, stop):
 	setup(args)
 	if args["type"] == "MobileNetSSD":
-		mnSSD_Detection(args)
+		mnSSD_Detection(args, stop)
 
 	elif args["type"] == "yolo-coco":
-		yolo_Detection(args)
+		yolo_Detection(args, stop)
 
 	else:
 		print("[ERROR] Select a detection-type")
