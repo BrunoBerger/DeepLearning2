@@ -2,56 +2,58 @@
 import cv2
 import os
 import argparse
-import tkinter
-import threading
+import multiprocessing
 
 # import needed files
 from object_detection import realTime
-from GUI import simpleUI
+from UI import interface
+from geolocation import website
 
-# Set current working dir to the one of main.py
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+def test():
+    print("main test")
 
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-y", "--type", required=False, default="yolo-coco",
-    help="base path to YOLO directory")
-ap.add_argument("-m", "--model", required=False, default="Tiny",
-    help="chose between the yolov3 models 320 and Tiny")
-ap.add_argument("-c", "--confidence", type=float, default=0.5,
-    help="minimum probability to filter weak detections")
-ap.add_argument("-t", "--threshold", type=float, default=0.3,
-    help="threshold when applyong non-maxima suppression")
-args = vars(ap.parse_args())
+def initDetectionThread(args, run_flag, all_processes):
+    process = multiprocessing.Process(target=detectionThread, args=(args, run_flag,))
+    process.start()
+    all_processes.append(process)
 
-print("Hello ", os.getlogin(), "lets get started!")
+def detectionThread(args, run_flag):
+    realTime.main(args, run_flag)
 
-stop_threads = False
+def main():
+    print("Hello ", os.getlogin(), "lets get started!")
 
-# ui = threading.Thread(target = simpleUI.optionWindow(),
-#                             daemon=True, args =(lambda : stop_threads))
-# ui.start()
+    # Set current working dir to the one of main.pyq
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
 
-cv2.namedWindow('wayCoolerWindow', flags= cv2.WINDOW_GUI_NORMAL)
-
-detection = threading.Thread(target = realTime.main(args),
-                            daemon=True, args =(lambda : stop_threads))
-detection.start()
-print("started Detection")
-
-while True:
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
+    # construct the argument parse and parse the arguments
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-y", "--type", required=False, default="MobileNetSSD",
+        help="base path to YOLO directory")
+    ap.add_argument("-m", "--model", required=False, default="Tiny",
+        help="chose between the yolov3 models 320 and Tiny")
+    ap.add_argument("-c", "--confidence", type=float, default=0.5,
+        help="minimum probability to filter weak detections")
+    ap.add_argument("-t", "--threshold", type=float, default=0.3,
+        help="threshold when applyong non-maxima suppression")
+    args = vars(ap.parse_args())
 
 
-fps.stop()
-print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
-print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
-detection.join()
-ui.join()
+    run_flag = multiprocessing.Value('I', True)
+    all_processes = []
 
-print("done")
+    # cv2.namedWindow('wayCoolerWindow', flags= cv2.WINDOW_GUI_NORMAL)
+    interface.optionWindow(args, run_flag, all_processes)
+
+
+    for process in all_processes:
+        process.join()
+    print("Process Terminated")
+
+    print("done")
+
+if __name__ == "__main__":
+   main()

@@ -15,9 +15,7 @@ import cv2
 import os
 import csv
 
-from object_detection.detection_scripts import MobileNetSSD_SCRIPT
 from geolocation import gps
-from GUI import simpleUI
 
 ### SETUP
 def setup(args):
@@ -76,25 +74,25 @@ def setup(args):
 ####################################
 ####################################
 ####################################
-def mnSSD_Detection(args):
+def mnSSD_Detection(args, run_flag):
 	###MNSSD TYPE
 	##################
 	print("[INFO] starting video stream...")
 	vs = VideoStream(src=0).start()
-	time.sleep(2.0)
+	time.sleep(1.0)
 	fps = FPS().start()
 
 	f = open("../object_log.csv", "w+")
 	f.close()
 
 	# loop over the frames from the video stream
-	while True:
+	while run_flag.value:
 		# grab the frame dimensions and convert it to a blob
 		try:
 			frame = vs.read()
-			frame = imutils.resize(frame, width=400)
+			(h, w) = frame.shape[:2]
 		except AttributeError:
-			print ("[ERROR] Please connect a Webcam to the PC")
+			print("[ERROR] Please connect a Webcam to the PC")
 			exit()
 		blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
 			0.007843, (300, 300), 127.5)
@@ -147,11 +145,15 @@ def mnSSD_Detection(args):
 		cv2.imshow("wayCoolerWindow", frame)
 		# if the `q` key was pressed, break from the loop
 		key = cv2.waitKey(1) & 0xFF
-		if key == ord("q"):
-			break
+		# if key == ord("q"):
+		# 	break
 
 	# update the FPS counter
 	fps.update()
+	fps.stop()
+	print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+	print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+
 
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
@@ -161,7 +163,7 @@ def mnSSD_Detection(args):
 ########################################
 ########################################
 ########################################
-def yolo_Detection(args, stop):
+def yolo_Detection(args, run_flag):
 	###YOLO TYPE
 
 	#start getting the video form webcam 0
@@ -177,12 +179,7 @@ def yolo_Detection(args, stop):
 	f.close()
 
 	#output the Video Stream
-	while True:
-		if stop():
-
-			print("Terminating Thread")
-			break
-
+	while run_flag.value:
 		#grab frame and its dimensions
 		# frame = vs.read()
 		try:
@@ -300,17 +297,14 @@ def yolo_Detection(args, stop):
 	vs.stop()
 
 
-def main(args, stop):
+def main(args, run_flag):
 	setup(args)
 	if args["type"] == "MobileNetSSD":
-		mnSSD_Detection(args, stop)
+		mnSSD_Detection(args, run_flag)
 
 	elif args["type"] == "yolo-coco":
-		yolo_Detection(args, stop)
+		yolo_Detection(args, run_flag)
 
 	else:
 		print("[ERROR] Select a detection-type")
 		exit()
-
-if __name__ == '__main__':
-	main(args)
