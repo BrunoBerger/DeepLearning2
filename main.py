@@ -12,6 +12,7 @@ from geolocation import website
 def test():
     print("main test")
 
+
 def initDetectionThread(args, run_flag, all_processes):
     process = multiprocessing.Process(target=detectionThread, args=(args, run_flag,))
     process.start()
@@ -40,15 +41,14 @@ def main():
         help="threshold when applyong non-maxima suppression")
     args = vars(ap.parse_args())
 
-
-
+    # needed for thread-control
     run_flag = multiprocessing.Value('I', True)
     all_processes = []
 
     # cv2.namedWindow('wayCoolerWindow', flags= cv2.WINDOW_GUI_NORMAL)
     interface.optionWindow(args, run_flag, all_processes)
 
-
+    # let processes run out
     for process in all_processes:
         process.join()
     print("Process Terminated")

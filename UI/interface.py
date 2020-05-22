@@ -34,7 +34,7 @@ def optionWindow(args, run_flag, all_processes):
     config.geometry("+{}+{}".format(positionRight, positionDown))
 
     b_test = Button(config, text="Print Something",
-        command=lambda: buttonFuncs.callbackTest(),
+        command=lambda: callbackTest(),
         height=2, width=15)
     b_start = Button(config, text="Start Thread",
         command= lambda: startThread(args, run_flag, all_processes, b_start),

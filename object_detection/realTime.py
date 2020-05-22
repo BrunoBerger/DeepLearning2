@@ -1,8 +1,3 @@
-#Tis a mix of
-#https://www.pyimagesearch.com/2018/11/12/yolo-object-detection-with-opencv/
-#and
-#https://www.pyimagesearch.com/2017/09/18/real-time-object-detection-with-deep-learning-and-opencv/
-
 # import the necessary packages
 from imutils.video import VideoStream
 from imutils.video import FPS
