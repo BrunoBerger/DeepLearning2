@@ -45,14 +45,14 @@ def main():
     run_flag = multiprocessing.Value('I', True)
     all_processes = []
 
-    # cv2.namedWindow('wayCoolerWindow', flags= cv2.WINDOW_GUI_NORMAL)
+    # Start Tkinter window with
     interface.optionWindow(args, run_flag, all_processes)
 
-    # let processes run out
+    # close loose threads
+    run_flag.value = False
     for process in all_processes:
         process.join()
     print("Process Terminated")
-
     print("done")
 
 if __name__ == "__main__":

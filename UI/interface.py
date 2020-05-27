@@ -4,6 +4,7 @@ from geolocation import website
 def callbackTest():
     print("Autsch")
 
+# Starts the func in
 def startThread(args, run_flag, all_processes, b_start):
     import main
     run_flag.value = True
@@ -15,6 +16,7 @@ def terminateThread(run_flag, b_start):
     run_flag.value = False
     b_start.config(state="active")
 
+# open a new window
 def showMap():
     website.makeMap()
 
@@ -46,16 +48,13 @@ def optionWindow(args, run_flag, all_processes):
         command= lambda: showMap(),
         height=2, width=15)
 
+    # Set position and attach to Tk window
     b_test.place(x = 30, y = 20)
     b_start.place(x = 30, y = 70)
     b_end.place(x = 30, y = 120)
     b_map.place(x = 30, y = 170)
+
     mainloop()
 
-# stuff to run always here such as class/def
-def main():
-    pass
-
 if __name__ == "__main__":
-   # stuff only to run when not called via 'import' here
-   main()
+   optionWindow()

@@ -31,8 +31,8 @@ def setup(args):
 				weightsFile = file
 
 		# assign the paths to the files based on the arguments
-		configPath = os.path.sep.join([args["type"], args["model"],  configFile ])
-		weightsPath = os.path.sep.join([args["type"], args["model"], weightsFile ])
+		configPath = os.path.sep.join([args["type"], args["model"], configFile])
+		weightsPath = os.path.sep.join([args["type"], args["model"], weightsFile])
 		labelsPath = os.path.sep.join([args["type"], "coco.names"])
 		global LABELS
 		LABELS = open(labelsPath).read().strip().split("\n")
@@ -77,9 +77,11 @@ def mnSSD_Detection(args, run_flag):
 	time.sleep(1.0)
 	fps = FPS().start()
 
-	f = open("../object_log.csv", "w+")
-	f.close()
-
+	# set path to a new csv file for logs
+	curTime = datetime.now()
+	curTimeStr= curTime.strftime("%Y-%m-%d_%H-%M-%S")
+	filePath = "../logs/" + curTimeStr + ".csv"
+	
 	# loop over the frames from the video stream
 	while run_flag.value:
 		# grab the frame dimensions and convert it to a blob
@@ -128,8 +130,9 @@ def mnSSD_Detection(args, run_flag):
 					" detected, with ", "%.2f" % confidence,
 					" confidence in {:.6f} seconds".format(end - start))
 
+				# log the detections into a new csv file
 				position = gps.givePosition()
-				with open('../object_log.csv','a') as file_:
+				with open(filePath,'a') as file_:
 					file_.write("{},{},{},{},{}".format(label,
 						"%.2f" % confidence,
 						position[0], position[1],
@@ -170,7 +173,7 @@ def yolo_Detection(args, run_flag):
 	# cv2.namedWindow('betterWindow', flags= cv2.WINDOW_GUI_NORMAL)
 
 	# Reset csv-Data
-	f = open("../object_log.csv", "w+")
+	f = open("../logs/object_log.csv", "w+")
 	f.close()
 
 	#output the Video Stream
@@ -263,9 +266,10 @@ def yolo_Detection(args, run_flag):
 				" detected, with ", "%.2f" % confidences[x],
 				 " confidence in {:.6f} seconds".format(end - start))
 
+
 		for x in range(len(idxs)):
 			position = gps.givePosition()
-			with open('../object_log.csv','a') as file_:
+			with open('../logs/object_log.csv','a') as file_:
 				file_.write("{},{},{},{},{}".format(
 					LABELS[classIDs[x]],
 					"%.2f" % confidences[x],
