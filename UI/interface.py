@@ -1,31 +1,16 @@
 from tkinter import *
-from geolocation import website
 
-def callbackTest():
-    print("Autsch")
-
-# Starts the func in
-def startThread(args, run_flag, all_processes, b_start):
-    import main
-    run_flag.value = True
-    main.initDetectionThread(args, run_flag, all_processes)
-    b_start.config(state="disabled")
-
-def terminateThread(run_flag, b_start):
-    print("Terminating Stream")
-    run_flag.value = False
-    b_start.config(state="active")
-
-# open a new window
-def showMap():
-    website.makeMap()
+from UI import buttonFuncs as bf
 
 
 def optionWindow(args, run_flag, all_processes):
+    # Generate a tkinter window
     config = Tk()
     config.title("Options")
     config.minsize(280,300)
     config.maxsize(350,600)
+
+    # Basically lets the window spawn in the middle of the screen
     # Gets the requested values of the height and widht.
     windowWidth = config.winfo_reqwidth()
     windowHeight = config.winfo_reqheight()
@@ -35,18 +20,29 @@ def optionWindow(args, run_flag, all_processes):
     # Positions the window in the center of the page.
     config.geometry("+{}+{}".format(positionRight, positionDown))
 
+    # generate Butttons and attach a function
     b_test = Button(config, text="Print Something",
-        command=lambda: callbackTest(),
+        command=lambda: bf.callbackTest(),
         height=2, width=15)
     b_start = Button(config, text="Start Thread",
-        command= lambda: startThread(args, run_flag, all_processes, b_start),
+        command= lambda: bf.startThread(args, run_flag, all_processes, b_start),
         height=2, width=15)
     b_end = Button(config, text="Terminate Thread",
-        command= lambda: terminateThread(run_flag, b_start),
+        command= lambda: bf.terminateThread(run_flag, b_start),
         height=2, width=15)
     b_map = Button(config, text="Show Map",
-        command= lambda: showMap(),
+        command= lambda: bf.showMap(),
         height=2, width=15)
+
+    # Radio Buttons for Type-Selection
+    odType = StringVar(config)
+    rb_SSD = Radiobutton(config, text="Moblie Net SSD",
+        variable=odType, value="MobileNetSSD",
+        command= lambda: bf.changeType(args, odType))
+    rb_yolo = Radiobutton(config, text="Yolo-Coco",
+        variable=odType, value="yolo-coco",
+        command= lambda: bf.changeType(args, odType))
+
 
     # Set position and attach to Tk window
     b_test.place(x = 30, y = 20)
@@ -54,7 +50,8 @@ def optionWindow(args, run_flag, all_processes):
     b_end.place(x = 30, y = 120)
     b_map.place(x = 30, y = 170)
 
-    mainloop()
+    rb_SSD.place(x = 160, y = 70)
+    rb_yolo.place(x = 160, y = 90)
 
-if __name__ == "__main__":
-   optionWindow()
+    rb_SSD.select()
+    mainloop()
