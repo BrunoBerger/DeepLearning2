@@ -30,7 +30,7 @@ def optionWindow(args, run_flag, all_processes):
     b_end = Button(config, text="Terminate Thread",
         command= lambda: bf.terminateThread(run_flag, b_start),
         height=2, width=15)
-    b_map = Button(config, text="Show Map",
+    b_map = Button(config, text="Make Map",
         command= lambda: bf.showMap(),
         height=2, width=15)
 

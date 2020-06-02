@@ -81,7 +81,7 @@ def mnSSD_Detection(args, run_flag):
 	curTime = datetime.now()
 	curTimeStr= curTime.strftime("%Y-%m-%d_%H-%M-%S")
 	filePath = "../logs/" + curTimeStr + ".csv"
-	
+
 	# loop over the frames from the video stream
 	while run_flag.value:
 		# grab the frame dimensions and convert it to a blob
