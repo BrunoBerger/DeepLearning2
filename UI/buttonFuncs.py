@@ -1,6 +1,6 @@
 # Modules needed for the functions
 import multiprocessing
-from object_detection import realTimeCombinedTest as od
+from object_detection import realTimeOnlySSD as od
 from geolocation import website
 
 
@@ -30,6 +30,6 @@ def terminateThread(run_flag, b_start):
     b_start.config(state="active")
 
 # open a new window/tab
-# TODO: Specify behaviour 
+# TODO: Specify behaviour
 def showMap():
     website.makeMap()

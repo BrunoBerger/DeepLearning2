@@ -109,12 +109,15 @@ def detection(args, run_flag):
 			detections = net.forward()
 		elif args["type"] == "yolo-coco":
 			detections = net.forward()
-		# detections = net.forward(ln)
 
 		end = time.time()
 
 		# loop over the detections
-		for i in np.arange(0, detections.shape[2]):
+		# for i in np.arange(0, detections.shape[2]):
+
+		# BIG TESTY-STUFF HERE
+		for i in detections:
+
 			# extract the confidence (i.e., probability) associated with
 			# the prediction
 			confidence = detections[0, 0, i, 2]
