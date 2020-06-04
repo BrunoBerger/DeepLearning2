@@ -1,6 +1,6 @@
 # Modules needed for the functions
 import multiprocessing
-from object_detection import realTimeOnlySSD as od
+from object_detection import realTime as od
 from geolocation import website
 
 

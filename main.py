@@ -31,7 +31,7 @@ def main():
         help="threshold when applyong non-maxima suppression")
     args = vars(ap.parse_args())
 
-    # needed for thread-control
+    # to control and keep track of threads
     run_flag = multiprocessing.Value('I', True)
     all_processes = []
 

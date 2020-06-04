@@ -7,8 +7,7 @@ from tkinter import filedialog
 # Opens a browser-tab with the objects on a map
 def makeMap():
     # gets the name of the session-csv the user chooses
-    stdFilePath = "logs"
-    selectedFile = filedialog.askopenfilename(initialdir = stdFilePath,
+    selectedFile = filedialog.askopenfilename(initialdir = "logs",
                                               title = "Select file",
                                               filetypes = (("Only logs","*.csv"),
                                                            ("all files","*.*")))
