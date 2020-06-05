@@ -2,8 +2,9 @@ from random import uniform
 
 
 def givePosition():
-    latitude = uniform(50,52)
-    longitude = uniform(8,10)
+    # sim. gps position with ~1m accuracy
+    latitude = "%.5f" % uniform(50,52)
+    longitude = "%.5f" % uniform(8,10)
     return latitude, longitude
 
 def main():

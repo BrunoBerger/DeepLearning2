@@ -1,4 +1,5 @@
 #the weights file is to big for git, so lets ignore it for now
 
+#__pycache__
 yolov3.weights
 yolov3-320.weights

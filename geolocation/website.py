@@ -22,11 +22,13 @@ def makeMap():
             for row in reader:
                 lat = row[2]
                 lon = row[3]
-                obj = row[0]
-                popup = "{} found at: {},{}".format(obj,lat,lon)
+                name = row[0].capitalize()
+                time = row[4]
+                popup = "{} found near: {},{}, at {}".format(name,lat,lon,time)
+                tooltip = name + " detected"
                 folium.Marker([lat, lon],
                     popup=popup,
-                    tooltip=obj).add_to(k)
+                    tooltip=tooltip).add_to(k)
 
         # Save and dislplay the html file
         # (will use the default browser)

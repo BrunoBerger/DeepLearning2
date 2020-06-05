@@ -4,16 +4,42 @@ from imutils.video import FPS
 from datetime import datetime
 import numpy as np
 import imutils
-import argparse
 import time
 import cv2
 import os
 import csv
+import functools
 
 from geolocation import gps
+from object_detection import filter
 
-### SETUP
+class detectedObject(object):
+    def __init__(self, name, posInFrame, timestamp, location, confidence):
+        self.name = name
+        self.pos = posInFrame
+        self.time = timestamp
+        self.location = location
+        self.conf = confidence
+
+def logDetection(filePath, newObj):
+    # log the detections into a new csv file
+    with open(filePath,'a') as file:
+        reader = csv.reader(file, delimiter=',')
+        file.write("{},{:.2f} %,{},{},{}".format(newObj.name,
+                                                 newObj.conf*100,
+                                                 newObj.location[0],
+                                                 newObj.location[1],
+                                                 newObj.time))
+        file.write("\n")
+    print("Logging ", newObj.name)
+
+
 def main(args, run_flag):
+    # change print behaviour to always flush the sys.stdout buffer
+    global print
+    print = functools.partial(print, flush=True)
+    print("Overwritten print function")
+
     ### SETUP
 
     # for shorter file-paths
@@ -30,18 +56,25 @@ def main(args, run_flag):
     net = cv2.dnn.readNetFromCaffe("MobileNetSSD/MobileNetSSD_deploy.prototxt.txt",
         "MobileNetSSD/MobileNetSSD_deploy.caffemodel")
 
+    # set path to a new csv file for logs
+    curTime = datetime.now()
+    curTimeStr= curTime.strftime("%Y-%m-%d_%H-%M-%S")
+    filePath = "../logs/" + curTimeStr + ".csv"
+
+    # create and position the output-window on the screen
+    cv2.namedWindow("wayCoolerWindow")
+    cv2.moveWindow("wayCoolerWindow", 200,100)
+
     ### DETECTION
 
     # Start webcam-capture
     print("[INFO] starting video stream...")
     vs = VideoStream(src=0).start()
-    time.sleep(1.0)
+    time.sleep(0.5)
     fps = FPS().start()
 
-    # set path to a new csv file for logs
-    curTime = datetime.now()
-    curTimeStr= curTime.strftime("%Y-%m-%d_%H-%M-%S")
-    filePath = "../logs/" + curTimeStr + ".csv"
+    # to later filter out redundant objects
+    objectBuffer = []
 
     # loop over the frames from the video stream
     # until run_flag == False, then thread runs out
@@ -62,6 +95,7 @@ def main(args, run_flag):
         net.setInput(blob)
         detections = net.forward()
         end = time.time()
+
         # loop over the detections
         for i in np.arange(0, detections.shape[2]):
             # extract the confidence (i.e., probability) associated with
@@ -78,8 +112,14 @@ def main(args, run_flag):
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                 (startX, startY, endX, endY) = box.astype("int")
 
+                # get info about the detected object
+                name = CLASSES[idx]
+                posInFrame = [startX, startY]
+                timestamp = datetime.now()
+                location = gps.givePosition()
+
                 # draw the prediction on the frame
-                label = "{}: {:.2f}%".format(CLASSES[idx],
+                label = "{} : {:.2f}%".format(name,
                     confidence * 100)
                 cv2.rectangle(frame, (startX, startY), (endX, endY),
                     COLORS[idx], 2)
@@ -87,22 +127,42 @@ def main(args, run_flag):
                 cv2.putText(frame, label, (startX, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
-				# output the names of detected objets
-                print(label,
-                    " detected, with ", "%.2f" % confidence,
-                    " confidence in {:.6f} seconds".format(end - start))
+				# # output the names of detected objets
+                # print(name,
+                #     " detected, with ", "%.2f" % (confidence*100),
+                #     "% confidence in {:.6f} seconds".format(end - start))
 
-                # log the detections into a new csv file
-                position = gps.givePosition()
-                with open(filePath,'a') as file:
-                    file.write("{},{},{},{},{}".format(label,
-                        "%.2f" % confidence,
-                        position[0], position[1],
-                        datetime.now()))
-                    file.write("\n")
+                # create a new object
+                newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
+
+                for oldObj in objectBuffer:
+
+                    if oldObj.name == newObj.name:
+                        timeDelta = (newObj.time - oldObj.time).total_seconds()
+                        if timeDelta < 2:
+
+                            posDelta = newObj.pos[0] - oldObj.pos[0]
+                            posDelta = abs(posDelta)
+                            print(name, "moved this ",posDelta, "pixels")
+
+                            if posDelta > 100:
+                                logDetection(filePath, newObj)
+
+                    else:
+                        logDetection(filePath, newObj)
+
+                objectBuffer.append(newObj)
+
+                # print("Buffer is this long: ", len(objectBuffer))
+                # objectsInBuffer = [n.name for n in objectBuffer]
+                # print("Detections in buffer: ", objectsInBuffer)
+
+        if len(objectBuffer) > 20:
+                del(objectBuffer[0:10])
 
         # show the output frame
         cv2.imshow("wayCoolerWindow", frame)
+
         # if the q key was pressed, break from the loop
         key = cv2.waitKey(1) & 0xFF
         # if key == ord("q"):
@@ -116,5 +176,6 @@ def main(args, run_flag):
 
 
     # do a bit of cleanup
+    objectBuffer.clear()
     cv2.destroyAllWindows()
     vs.stop()
