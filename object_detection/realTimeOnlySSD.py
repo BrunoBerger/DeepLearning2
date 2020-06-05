@@ -38,28 +38,24 @@ def main(args, run_flag):
     # change print behaviour to always flush the sys.stdout buffer
     global print
     print = functools.partial(print, flush=True)
-    print("Overwritten print function")
 
     ### SETUP
+    print("Loading a SSD-MobileNet")
 
-    # for shorter file-paths
-    os.chdir("object_detection")
-
-    print("Chosen Model Type:", args["type"])
+    basePath = args["path"]
+    net = cv2.dnn.readNetFromCaffe(basePath + "/MobileNetSSD_deploy.prototxt.txt",
+    basePath + "/MobileNetSSD_deploy.caffemodel")
 
     CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
         "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
         "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
-        "sofa", "train", "tvmonitor"]
+        "sofa", "train", "monitor"]
     COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
-
-    net = cv2.dnn.readNetFromCaffe("MobileNetSSD/MobileNetSSD_deploy.prototxt.txt",
-        "MobileNetSSD/MobileNetSSD_deploy.caffemodel")
 
     # set path to a new csv file for logs
     curTime = datetime.now()
     curTimeStr= curTime.strftime("%Y-%m-%d_%H-%M-%S")
-    filePath = "../logs/" + curTimeStr + ".csv"
+    filePath = "logs/" + curTimeStr + ".csv"
 
     # create and position the output-window on the screen
     cv2.namedWindow("wayCoolerWindow")
@@ -132,11 +128,11 @@ def main(args, run_flag):
                 #     " detected, with ", "%.2f" % (confidence*100),
                 #     "% confidence in {:.6f} seconds".format(end - start))
 
-                # create a new object
+
                 newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
 
+                # check if the new object is too similar to previous ones
                 for oldObj in objectBuffer:
-
                     if oldObj.name == newObj.name:
                         timeDelta = (newObj.time - oldObj.time).total_seconds()
                         if timeDelta < 2:
@@ -147,10 +143,8 @@ def main(args, run_flag):
 
                             if posDelta > 100:
                                 logDetection(filePath, newObj)
-
                     else:
                         logDetection(filePath, newObj)
-
                 objectBuffer.append(newObj)
 
                 # print("Buffer is this long: ", len(objectBuffer))
@@ -160,7 +154,7 @@ def main(args, run_flag):
         if len(objectBuffer) > 20:
                 del(objectBuffer[0:10])
 
-        # show the output frame
+        # show the output frame, or create a new window if destroyed
         cv2.imshow("wayCoolerWindow", frame)
 
         # if the q key was pressed, break from the loop

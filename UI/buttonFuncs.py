@@ -3,15 +3,9 @@ import multiprocessing
 from object_detection import realTimeOnlySSD as od
 from geolocation import website
 
-
 # A simple test for buttons
 def callbackTest():
-    print("Autsch")
-
-# get the value of odType and change the model
-def changeType(args, odType):
-    args["type"] = odType.get()
-    print("You chose " + args["type"])
+    print("Will make a screenshot in the future")
 
 # Starts a detection-thread
 def startThread(args, run_flag, all_processes, b_start):
