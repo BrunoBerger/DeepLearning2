@@ -34,7 +34,7 @@ def logDetection(filePath, newObj):
     print("Logging ", newObj.name)
 
 
-def main(args, run_flag):
+def main(args, run_flag, output_flag):
     # change print behaviour to always flush the sys.stdout buffer
     global print
     print = functools.partial(print, flush=True)
@@ -58,8 +58,10 @@ def main(args, run_flag):
     filePath = "logs/" + curTimeStr + ".csv"
 
     # create and position the output-window on the screen
-    cv2.namedWindow("wayCoolerWindow")
-    cv2.moveWindow("wayCoolerWindow", 200,100)
+    if output_flag.value == True:
+        print("Starting in Reder MOde")
+        cv2.namedWindow("Object Detection Running")
+        cv2.moveWindow("Object Detection Running", 300,300)
 
     ### DETECTION
 
@@ -128,18 +130,16 @@ def main(args, run_flag):
                 #     " detected, with ", "%.2f" % (confidence*100),
                 #     "% confidence in {:.6f} seconds".format(end - start))
 
-
-                newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
-
                 # check if the new object is too similar to previous ones
+                newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
                 for oldObj in objectBuffer:
                     if oldObj.name == newObj.name:
                         timeDelta = (newObj.time - oldObj.time).total_seconds()
-                        if timeDelta < 2:
+                        if timeDelta > 5:
 
                             posDelta = newObj.pos[0] - oldObj.pos[0]
                             posDelta = abs(posDelta)
-                            print(name, "moved this ",posDelta, "pixels")
+                            # print(name, "moved this ",posDelta, "pixels")
 
                             if posDelta > 100:
                                 logDetection(filePath, newObj)
@@ -151,11 +151,12 @@ def main(args, run_flag):
                 # objectsInBuffer = [n.name for n in objectBuffer]
                 # print("Detections in buffer: ", objectsInBuffer)
 
-        if len(objectBuffer) > 20:
-                del(objectBuffer[0:10])
+        if len(objectBuffer) > 5:
+                del(objectBuffer[0:1])
 
         # show the output frame, or create a new window if destroyed
-        cv2.imshow("wayCoolerWindow", frame)
+        if output_flag.value == True:
+            cv2.imshow("Object Detection Running", frame)
 
         # if the q key was pressed, break from the loop
         key = cv2.waitKey(1) & 0xFF

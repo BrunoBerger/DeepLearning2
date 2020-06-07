@@ -4,10 +4,15 @@ import os
 import argparse
 import multiprocessing
 
+# Set current working dir to the one of main.py
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+
 from UI import interface
 
 def main():
-    print("Hello ", os.getlogin(), "lets get started!")
+    print("Hello", os.getlogin(), ", lets get started!")
 
     # Set current working dir to the one of main.py
     abspath = os.path.abspath(__file__)
@@ -33,8 +38,8 @@ def main():
     run_flag.value = False
     for process in all_processes:
         process.join()
-    print("Process Terminated")
-    print("done")
+    print("Processes Terminated")
+    print("[Done]")
 
 if __name__ == "__main__":
    main()
