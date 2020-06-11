@@ -70,13 +70,5 @@ def optionWindow(args, run_flag, all_processes):
 
     v_topLine.place(x=5, y=80)
     v_bottomLine.place(x=55, y=175)
+
     mainloop()
-
-def layoutTest(args, run_flag, all_processes):
-    optionWindow(args, run_flag, all_processes)
-
-if __name__ == "__main__":
-    args = "test"
-    run_flag = "test"
-    all_processes = "test"
-    layoutTest(args, run_flag, all_processes)

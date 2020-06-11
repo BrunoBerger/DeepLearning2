@@ -125,33 +125,34 @@ def main(args, run_flag, output_flag):
                 cv2.putText(frame, label, (startX, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
-				# # output the names of detected objets
-                # print(name,
-                #     " detected, with ", "%.2f" % (confidence*100),
-                #     "% confidence in {:.6f} seconds".format(end - start))
-
                 # check if the new object is too similar to previous ones
                 newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
                 for oldObj in objectBuffer:
                     if oldObj.name == newObj.name:
-                        timeDelta = (newObj.time - oldObj.time).total_seconds()
-                        if timeDelta > 5:
 
-                            posDelta = newObj.pos[0] - oldObj.pos[0]
-                            posDelta = abs(posDelta)
-                            # print(name, "moved this ",posDelta, "pixels")
+                        # get last time this type was logged
+                        timeDeltas = []
+                        for oldObj in objectBuffer:
+                            timeDelta = (newObj.time - oldObj.time).total_seconds()
+                            timeDeltas.append(timeDelta)
 
-                            if posDelta > 100:
+                        # get how much this object has moved on the screen
+                        posDelta = newObj.pos[0] - oldObj.pos[0]
+                        posDelta = abs(posDelta)
+                        # print(name, "moved this ",posDelta, "pixels")
+
+                        if min(timeDeltas) > 5 or posDelta > 100:
                                 logDetection(filePath, newObj)
+
                     else:
                         logDetection(filePath, newObj)
                 objectBuffer.append(newObj)
 
-                # print("Buffer is this long: ", len(objectBuffer))
-                # objectsInBuffer = [n.name for n in objectBuffer]
-                # print("Detections in buffer: ", objectsInBuffer)
+                print("Buffer is this long: ", len(objectBuffer))
+                objectsInBuffer = [n.name for n in objectBuffer]
+                print("Detections in buffer: ", objectsInBuffer)
 
-        if len(objectBuffer) > 5:
+        if len(objectBuffer) > 8:
                 del(objectBuffer[0:1])
 
         # show the output frame, or create a new window if destroyed
