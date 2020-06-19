@@ -11,7 +11,6 @@ import csv
 import functools
 
 from geolocation import gps
-from object_detection import filter
 
 class detectedObject(object):
     def __init__(self, name, posInFrame, timestamp, location, confidence):
@@ -137,12 +136,17 @@ def main(args, run_flag, output_flag):
                             timeDeltas.append(timeDelta)
 
                         # get how much this object has moved on the screen
-                        posDelta = newObj.pos[0] - oldObj.pos[0]
-                        posDelta = abs(posDelta)
+                        posDeltas = []
+                        for oldObj in objectBuffer:
+                            posDelta = newObj.pos[0] - oldObj.pos[0]
+                            posDelta = abs(posDelta)
+                            posDeltas.append(posDelta)
                         # print(name, "moved this ",posDelta, "pixels")
 
-                        if min(timeDeltas) > 5 or posDelta > 100:
-                                logDetection(filePath, newObj)
+                        if not timeDeltas or posDeltas:
+                            logDetection(filePath, newObj)
+                        elif min(timeDeltas) > 5 or min(posDeltas) > 100:
+                            logDetection(filePath, newObj)
 
                     else:
                         logDetection(filePath, newObj)
