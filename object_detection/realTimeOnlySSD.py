@@ -43,7 +43,15 @@ def main(args, run_flag, output_flag):
 
     basePath = args["path"]
     net = cv2.dnn.readNetFromCaffe(basePath + "/MobileNetSSD_deploy.prototxt.txt",
-    basePath + "/MobileNetSSD_deploy.caffemodel")
+        basePath + "/MobileNetSSD_deploy.caffemodel")
+
+    # for Cuda-GPU support
+    try:
+        net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+        net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    except:
+        print("Using CPU")
+        pass
 
     CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
         "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
@@ -124,6 +132,7 @@ def main(args, run_flag, output_flag):
                 cv2.putText(frame, label, (startX, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
+                # FILTER:
                 # check if the new object is too similar to previous ones
                 newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
                 for oldObj in objectBuffer:
@@ -156,8 +165,8 @@ def main(args, run_flag, output_flag):
                 objectsInBuffer = [n.name for n in objectBuffer]
                 print("Detections in buffer: ", objectsInBuffer)
 
-        if len(objectBuffer) > 8:
-                del(objectBuffer[0:1])
+        if len(objectBuffer) > 30:
+                del(objectBuffer[0:3])
 
         # show the output frame, or create a new window if destroyed
         if output_flag.value == True:
