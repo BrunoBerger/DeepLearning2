@@ -30,7 +30,7 @@ def logDetection(filePath, newObj):
                                                  newObj.location[1],
                                                  newObj.time))
         file.write("\n")
-    print("Logging ", newObj.name)
+    print("Logging ", newObj.name, "==========================================")
 
 
 def main(args, run_flag, output_flag):
@@ -135,38 +135,50 @@ def main(args, run_flag, output_flag):
                 # FILTER:
                 # check if the new object is too similar to previous ones
                 newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
-                for oldObj in objectBuffer:
-                    if oldObj.name == newObj.name:
+                timeDeltas = []
+                posDeltas = []
 
-                        # get last time this type was logged
-                        timeDeltas = []
-                        for oldObj in objectBuffer:
+                # Make sure the buffer isn't empty
+                if not objectBuffer:
+                    print("First object Detected")
+                    logDetection(filePath, newObj)
+                    objectBuffer.append(newObj)
+                else:
+                    for oldObj in objectBuffer:
+                        if oldObj.name == newObj.name:
+                            # get last time this type was logged
                             timeDelta = (newObj.time - oldObj.time).total_seconds()
                             timeDeltas.append(timeDelta)
 
-                        # get how much this object has moved on the screen
-                        posDeltas = []
-                        for oldObj in objectBuffer:
+                            # get how much this object has moved on the screen
                             posDelta = newObj.pos[0] - oldObj.pos[0]
                             posDelta = abs(posDelta)
                             posDeltas.append(posDelta)
-                        # print(name, "moved this ",posDelta, "pixels")
 
-                        if not timeDeltas or posDeltas:
-                            logDetection(filePath, newObj)
-                        elif min(timeDeltas) > 5 or min(posDeltas) > 100:
-                            logDetection(filePath, newObj)
+                            # info-vis.
+                            text = "P-Delta of "+ newObj.name +" : "+ str(posDelta)
+                            cv2.putText(frame, text, (5, 15),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
+                            text = "T-Delta of "+ newObj.name + " : " + str(timeDelta)
+                            cv2.putText(frame, text, (5, 35),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
-                    else:
+                    if not timeDeltas:
+                        # logDetection(filePath, newObj)
+                        print("Nothing like this in the buffer")
                         logDetection(filePath, newObj)
-                objectBuffer.append(newObj)
+                    elif min(timeDeltas) > 5 or min(posDeltas) > 100:
+                        logDetection(filePath, newObj)
+                        # objectBuffer.append(newObj)
 
-                print("Buffer is this long: ", len(objectBuffer))
-                objectsInBuffer = [n.name for n in objectBuffer]
-                print("Detections in buffer: ", objectsInBuffer)
+                    objectBuffer.append(newObj)
 
-        if len(objectBuffer) > 30:
-                del(objectBuffer[0:3])
+                # print("Buffer is this long: ", len(objectBuffer))
+                # objectsInBuffer = [n.name for n in objectBuffer]
+                # print("Detections in buffer: ", objectsInBuffer)
+
+        if len(objectBuffer) > 25:
+                del(objectBuffer[0:5])
 
         # show the output frame, or create a new window if destroyed
         if output_flag.value == True:

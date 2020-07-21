@@ -21,7 +21,7 @@ def main():
 
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("-c", "--confidence", type=float, default=0.7,
+    ap.add_argument("-c", "--confidence", type=float, default=0.9,
         help="minimum probability to filter weak detections")
     ap.add_argument("-p", "--path", required=False, default="object_detection/MobileNetSSD",
         help="base path to models directory")
