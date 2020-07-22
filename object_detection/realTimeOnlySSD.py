@@ -30,7 +30,7 @@ def logDetection(filePath, newObj):
                                                  newObj.location[1],
                                                  newObj.time))
         file.write("\n")
-    print("Logging ", newObj.name, "==========================================")
+    print("Logging ", newObj.name)
 
 
 def main(args, run_flag, output_flag):
@@ -80,6 +80,7 @@ def main(args, run_flag, output_flag):
 
     # to later filter out redundant objects
     objectBuffer = []
+    errorGuess = 0
 
     # loop over the frames from the video stream
     # until run_flag == False, then thread runs out
@@ -88,6 +89,8 @@ def main(args, run_flag, output_flag):
         try:
             frame = vs.read()
             (h, w) = frame.shape[:2]
+            fps.update()
+            errorGuess += 1
         except AttributeError:
             print("[ERROR] Please connect a Webcam to the PC")
             exit()
@@ -98,7 +101,7 @@ def main(args, run_flag, output_flag):
         # predictions
         start = time.time()
         net.setInput(blob)
-        detections = net.forward()
+        detections = net.forward() # ->all object_detection happening here
         end = time.time()
 
         # loop over the detections
@@ -110,6 +113,7 @@ def main(args, run_flag, output_flag):
             # filter out weak detections by ensuring the confidence is
             # greater than the minimum confidence
             if confidence > args["confidence"]:
+                errorGuess = 0
                 # extract the index of the class label from the
                 # detections, then compute the (x, y)-coordinates of
                 # the bounding box for the object
@@ -132,8 +136,9 @@ def main(args, run_flag, output_flag):
                 cv2.putText(frame, label, (startX, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
-                # FILTER:
-                # check if the new object is too similar to previous ones
+                ##########
+                # FILTER:#
+                ##########
                 newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
                 timeDeltas = []
                 posDeltas = []
@@ -144,6 +149,7 @@ def main(args, run_flag, output_flag):
                     logDetection(filePath, newObj)
                     objectBuffer.append(newObj)
                 else:
+                    # check all previous instances of this object
                     for oldObj in objectBuffer:
                         if oldObj.name == newObj.name:
                             # get last time this type was logged
@@ -163,13 +169,12 @@ def main(args, run_flag, output_flag):
                             cv2.putText(frame, text, (5, 35),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
+                    # check if this is a new object or not
                     if not timeDeltas:
-                        # logDetection(filePath, newObj)
                         print("Nothing like this in the buffer")
                         logDetection(filePath, newObj)
                     elif min(timeDeltas) > 5 or min(posDeltas) > 100:
                         logDetection(filePath, newObj)
-                        # objectBuffer.append(newObj)
 
                     objectBuffer.append(newObj)
 
@@ -178,19 +183,21 @@ def main(args, run_flag, output_flag):
                 # print("Detections in buffer: ", objectsInBuffer)
 
         if len(objectBuffer) > 25:
-                del(objectBuffer[0:5])
+            del(objectBuffer[0:5])
+        if errorGuess > 600:
+            warn = "No new object for a while, mayber there's an Error!"
+            col = (50, 0, 240)
+            cv2.putText(frame, warn, (20, 450),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2)
 
         # show the output frame, or create a new window if destroyed
         if output_flag.value == True:
             cv2.imshow("Object Detection Running", frame)
-
-        # if the q key was pressed, break from the loop
         key = cv2.waitKey(1) & 0xFF
-        # if key == ord("q"):
-        #     break
+
 
     # update the FPS counter
-    fps.update()
+
     fps.stop()
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
