@@ -1,12 +1,12 @@
 # DeepLearning2
 Developing a tool for detecting objects with geolocation
 ***
-Object detection with YOLO on the coco dataset
+Object detection with a MobileNet-SSD detector, trained on the coco dataset
 
-Mostly from these resources [1][pyimYOLO], [2][pyimRT], [3][darknet].
+Mostly helped by these resources [1][pyimYOLO], [2][pyimRT], [3][darknet].
 
 
-More information and all of taks to hand in for the DL2 module can be found in the [Wiki][wiki] 
+More information and all of taks to hand in for the DL2 module can be found in the [Wiki][wiki]
 
 #
 

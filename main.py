@@ -3,21 +3,15 @@ import cv2
 import os
 import argparse
 import multiprocessing
+import sys
 
-# Set current working dir to the one of main.py
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
-
+# make realative paths work, regardless of cwd
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from UI import interface
 
-def main():
-    print("Hello", os.getlogin(), ", lets get started!")
 
-    # Set current working dir to the one of main.py
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
+def main():
+    print("Hello", os.getlogin() + ", lets get started!")
 
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
@@ -38,6 +32,7 @@ def main():
     run_flag.value = False
     for process in all_processes:
         process.join()
+
     print("Processes Terminated")
     print("[Done]")
 
