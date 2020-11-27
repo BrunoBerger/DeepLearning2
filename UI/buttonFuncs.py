@@ -5,10 +5,6 @@ import webbrowser
 from object_detection import realTimeOnlySSD as od
 from geolocation import website
 
-# A simple test for buttons
-def callbackTest():
-    print("Will make a screenshot in the future")
-
 # Starts a detection-thread
 def startThread(args, run_flag, all_processes, b_start, output_flag):
     run_flag.value = True
@@ -27,8 +23,8 @@ def terminateThread(run_flag, b_start):
 def updateRenderMode(output_flag):
     output_flag.value = not output_flag.value
 
-# open a new window/tab
 # TODO: Specify behaviour for new tab/window + used Browser
+# open a new window/tab
 def showMap():
     website.makeMap()
 

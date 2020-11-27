@@ -1,5 +1,5 @@
-from tkinter import *
 import multiprocessing
+from tkinter import *
 
 from UI import buttonFuncs as bf
 
@@ -57,7 +57,7 @@ def optionWindow(args, run_flag, all_processes):
     v_bottomLine = Canvas()
     v_bottomLine.config(width=160, height=2, bg="gray72")
 
-    # Set position and attach to Tk window
+    # Set positions and attach elements to Tk window
     b_start.place(x=30, y=100)
     b_stop.place(x=160, y=100)
     b_map.place(x=15, y=200)
@@ -71,4 +71,5 @@ def optionWindow(args, run_flag, all_processes):
     v_topLine.place(x=5, y=80)
     v_bottomLine.place(x=55, y=175)
 
+    # keeps the window open
     mainloop()

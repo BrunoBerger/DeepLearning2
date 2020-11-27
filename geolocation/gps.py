@@ -8,9 +8,10 @@ def givePosition():
     return latitude, longitude
 
 
-# small test
-def main():
-    position = givePosition()
-    print(position[0], position[1])
+# random data-test
+def test():
+    for i in range(10):
+        position = givePosition()
+        print(position[0], position[1])
 if __name__ == '__main__':
-	main()
+	test()

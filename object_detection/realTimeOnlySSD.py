@@ -1,16 +1,18 @@
 # import the necessary packages
-from imutils.video import VideoStream
-from imutils.video import FPS
-from datetime import datetime
-import numpy as np
-import imutils
-import time
-import cv2
-import os
 import csv
+from datetime import datetime
 import functools
+import os
+import time
+
+import cv2
+import imutils
+from imutils.video import FPS
+from imutils.video import VideoStream
+import numpy as np
 
 from geolocation import gps
+
 
 class detectedObject(object):
     def __init__(self, name, posInFrame, timestamp, location, confidence):
@@ -38,9 +40,8 @@ def main(args, run_flag, output_flag):
     global print
     print = functools.partial(print, flush=True)
 
-    ### SETUP
-    print("Loading a SSD-MobileNet")
-
+    ### SETUP ###
+    #############
     basePath = args["path"]
     net = cv2.dnn.readNetFromCaffe(basePath + "/MobileNetSSD_deploy.prototxt.txt",
         basePath + "/MobileNetSSD_deploy.caffemodel")
@@ -70,7 +71,8 @@ def main(args, run_flag, output_flag):
         cv2.namedWindow("Object Detection Running")
         cv2.moveWindow("Object Detection Running", 300,300)
 
-    ### DETECTION
+    ### DETECTION ###
+    #################
 
     # Start webcam-capture
     print("[INFO] starting video stream...")
@@ -121,7 +123,7 @@ def main(args, run_flag, output_flag):
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                 (startX, startY, endX, endY) = box.astype("int")
 
-                # get info about the detected object
+                # collect info about the detected object
                 name = CLASSES[idx]
                 posInFrame = [startX, startY]
                 timestamp = datetime.now()
@@ -169,7 +171,7 @@ def main(args, run_flag, output_flag):
                             cv2.putText(frame, text, (5, 35),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
-                    # check if this is a new object or not
+                    # decice if this is a new object or not
                     if not timeDeltas:
                         print("Nothing like this in the buffer")
                         logDetection(filePath, newObj)
@@ -178,32 +180,34 @@ def main(args, run_flag, output_flag):
 
                     objectBuffer.append(newObj)
 
+                # For filter adjustments
                 # print("Buffer is this long: ", len(objectBuffer))
                 # objectsInBuffer = [n.name for n in objectBuffer]
                 # print("Detections in buffer: ", objectsInBuffer)
 
+        # keep buffer small
         if len(objectBuffer) > 25:
             del(objectBuffer[0:5])
+
         if errorGuess > 600:
             warn = "No new object for a while, mayber there's an Error!"
             col = (50, 0, 240)
             cv2.putText(frame, warn, (20, 450),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2)
 
-        # show the output frame, or create a new window if destroyed
+        # show the output frame with all added INFO,
+        # or create a new window if destroyed
         if output_flag.value == True:
             cv2.imshow("Object Detection Running", frame)
         key = cv2.waitKey(1) & 0xFF
 
 
-    # update the FPS counter
-
+    # dump FPS info
     fps.stop()
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
-
-    # do a bit of cleanup
+    # do a bit of cleanup when the thread runs out
     objectBuffer.clear()
     cv2.destroyAllWindows()
     vs.stop()

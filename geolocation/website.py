@@ -4,7 +4,7 @@ import csv
 import os
 from tkinter import filedialog
 
-# Opens a browser-tab with the objects on a map
+# Creates a HTML-Map and opens in the users browser
 def makeMap():
     # gets the name of the session-csv the user chooses
     stdFilePath = "logs"
@@ -14,9 +14,10 @@ def makeMap():
                                                            ("all files","*.*")))
     # only do if a file is selected
     if not selectedFile == "":
+        # TODO: make default map-pos and zoom dependant on the log
         # Creates Map Object
         k = folium.Map(location=[52, 9], zoom_start=8)
-        # Create Markters of a csv file
+        # loop through the csv file and place markers on the map
         with open(selectedFile, "r") as objects:
             reader = csv.reader(objects, delimiter=',')
             for row in reader:
