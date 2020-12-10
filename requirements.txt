@@ -1,4 +1,4 @@
-opencv_contrib_python==4.2.0.34
+opencv-contrib-python==4.2.0.34
 numpy==1.18.3
 imutils==0.5.3
 folium==0.10.1

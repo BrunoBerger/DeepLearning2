@@ -12,7 +12,7 @@ More information and all of taks to hand in for the DL2 module can be found in t
 <img src="https://user-images.githubusercontent.com/43641701/100948748-de44e680-3508-11eb-9821-9ad86524c7e4.png" width="40%"></img> <img src="https://user-images.githubusercontent.com/43641701/100948556-637bcb80-3508-11eb-8b33-3f5973179ed4.png" width="20%"></img> <img src="https://user-images.githubusercontent.com/43641701/100948933-409de700-3509-11eb-88ab-cf79bce11519.png" width="35%"></img>
 
 ***
-
+![Python flake8 check](https://github.com/BrunoBerger/DeepLearning2/workflows/Python%20flake8%20check/badge.svg)
 ### Install and Use:
 1. Make sure you are using at least [python 3.7][py] and have [pip][PIP] installed
 2. Clone the repository on to your device
