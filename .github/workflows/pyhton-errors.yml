@@ -2,8 +2,8 @@ name: Python flake8 check
 
 on:
     workflow_dispatch:
-    # push:
-    # branches: [ master ]
+    push:
+        branches: [ master ]
 
 jobs:
   build:
