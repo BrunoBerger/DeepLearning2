@@ -6,3 +6,5 @@ __pycache__
 .~*
 yolov3.weights
 yolov3-320.weights
+
+.vscode 
