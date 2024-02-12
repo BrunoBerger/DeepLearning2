@@ -9,6 +9,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from UI import interface
 
+def function(argument):
+    print("test,", argument)
 
 def main():
     print("Hello", os.getlogin() + ", lets get started!")

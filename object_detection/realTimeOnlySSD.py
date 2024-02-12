@@ -76,26 +76,51 @@ def main(args, run_flag, output_flag):
 
     # Start webcam-capture
     print("[INFO] starting video stream...")
-    vs = VideoStream(src=0).start()
-    time.sleep(0.5)
     fps = FPS().start()
+    # vs = VideoStream(src=0).start()
+
+
+
+    vs = cv2.VideoCapture("./videos/video1.mp4")
+    vs = cv2.VideoCapture("./videos/input.mp4")
+    writer = None
+    (W, H) = (None, None)
+    # try to determine the total number of frames in the video file
+    try:
+        prop = cv2.cv.CV_CAP_PROP_FRAME_COUNT if imutils.is_cv2() \
+            else cv2.CAP_PROP_FRAME_COUNT
+        total = int(vs.get(prop))
+        print("[INFO] {} total frames in video".format(total))
+    # an error occurred while trying to determine the total
+    # number of frames in the video file
+    except:
+        print("[INFO] could not determine # of frames in video")
+        print("[INFO] no approx. completion time can be provided")
+        total = -1
+
+
+
+    time.sleep(0.5)
 
     # to later filter out redundant objects
     objectBuffer = []
     errorGuess = 0
+    amout_of_individuals_detected = 0
 
     # loop over the frames from the video stream
     # until run_flag == False, then thread runs out
     while run_flag.value:
         # grab the frame dimensions and convert it to a blob
         try:
-            frame = vs.read()
+            grabbed, frame = vs.read()
             (h, w) = frame.shape[:2]
             fps.update()
             errorGuess += 1
         except AttributeError:
-            print("[ERROR] Please connect a Webcam to the PC")
-            exit()
+            # print("[ERROR] Please connect a Webcam to the PC")
+            # exit()
+            pass
+        
         blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
             0.007843, (300, 300), 127.5)
 
@@ -139,7 +164,7 @@ def main(args, run_flag, output_flag):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
                 ##########
-                # FILTER:#
+                # CUSTOM FILTER
                 ##########
                 newObj = detectedObject(name, posInFrame, timestamp, location, confidence)
                 timeDeltas = []
@@ -179,11 +204,11 @@ def main(args, run_flag, output_flag):
                         logDetection(filePath, newObj)
 
                     objectBuffer.append(newObj)
+                    amout_of_individuals_detected += 1
 
-                # For filter adjustments
-                # print("Buffer is this long: ", len(objectBuffer))
-                # objectsInBuffer = [n.name for n in objectBuffer]
-                # print("Detections in buffer: ", objectsInBuffer)
+                ##########
+                # REIDENTIFICATION
+                ##########
 
         # keep buffer small
         if len(objectBuffer) > 25:
@@ -194,6 +219,23 @@ def main(args, run_flag, output_flag):
             col = (50, 0, 240)
             cv2.putText(frame, warn, (20, 450),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2)
+
+        # CREATE OUTPUT VIDEO
+        # check if the video writer is None
+        if writer is None:
+            # initialize our video writer
+            fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+            writer = cv2.VideoWriter("videos/output.avi", fourcc, 30,
+                (frame.shape[1], frame.shape[0]), True)
+            # some information on processing single frame
+            if total > 0:
+                elap = (end - start)
+                print("[INFO] single frame took {:.4f} seconds".format(elap))
+                print("[INFO] estimated total time to finish: {:.4f}".format(
+                    elap * total))
+        # write the output frame to disk
+        writer.write(frame)
+
 
         # show the output frame with all added INFO,
         # or create a new window if destroyed
@@ -211,3 +253,4 @@ def main(args, run_flag, output_flag):
     objectBuffer.clear()
     cv2.destroyAllWindows()
     vs.stop()
+    writer.release()
